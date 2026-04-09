@@ -1,0 +1,32 @@
+<div class="resume-preview t-professional">
+  <div class="resume-header" style="border-bottom: 2px solid #000; padding-bottom: 1rem;">
+    <h1><%= resume.personal.fullName %></h1>
+    <div class="resume-contact">
+      <strong>Email:</strong> <%= resume.personal.email %> | <strong>Phone:</strong> <%= resume.personal.phone %>
+      <% if (resume.personal.linkedin) { %> | <strong>LinkedIn:</strong> <%= resume.personal.linkedin %> <% } %>
+    </div>
+  </div>
+
+  <div class="resume-section">
+    <h2>Professional Experience</h2>
+    <% resume.experience.forEach(exp => { %>
+      <div class="resume-item">
+        <div class="resume-item-header">
+          <span><%= exp.title || exp.role %></span>
+          <span><%= exp.date || exp.duration %></span>
+        </div>
+        <div class="resume-item-sub"><%= exp.company || exp.organization %></div>
+        <ul class="resume-bullets">
+          <% (Array.isArray(exp.description) ? exp.description : [exp.description]).forEach(point => { %>
+            <li><%= point %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="resume-section">
+    <h2>Skills & Expertise</h2>
+    <p><%= resume.skills.join(' • ') %></p>
+  </div>
+</div>

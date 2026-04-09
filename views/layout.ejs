@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'ResumeAI | AI-Powered Resume Builder' %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/theme.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <nav class="navbar no-print">
+        <a href="/" class="nav-brand">
+            <div class="nav-logo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            ResumeAI
+        </a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/create">Build Resume</a>
+            <span id="navResumeLink" style="display:none;">
+                <a href="/preview" style="color: var(--primary); font-weight: 600;">My Resume ↗</a>
+            </span>
+            <a href="/create" class="nav-cta" onclick="createNewResume()">Create New</a>
+        </div>
+    </nav>
+    <script>
+        function createNewResume() {
+            localStorage.removeItem('exec_ai_form_v2');
+            localStorage.removeItem('executive_resume_form_data');
+            sessionStorage.removeItem('resumeData');
+            window.location.href = '/create';
+        }
+    </script>
+
+    <main class="container" style="padding-top: 5rem;">
+        <%- body %>
+    </main>
+
+    <footer class="footer no-print">
+        &copy; <%= new Date().getFullYear() %> RESUMEAI. ALL RIGHTS RESERVED.
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <%- typeof scripts !== 'undefined' ? scripts : '' %>
+    <script>
+        if (sessionStorage.getItem('resumeData')) {
+            const link = document.getElementById('navResumeLink');
+            if (link) link.style.display = 'inline';
+        }
+    </script>
+</body>
+</html>

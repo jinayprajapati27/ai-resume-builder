@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build Your Resume | ResumeAI</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-grid bg-glow" style="padding-top: 5rem;">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <div class="nav-logo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            ResumeAI
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/create" class="nav-link">Build Resume</a>
+            <span id="navResumeLink" style="display:none;">
+                <a href="/preview" style="color: var(--primary); font-weight: 600;">My Resume ↗</a>
+            </span>
+            <a href="/create" class="nav-cta" onclick="createNewResume()">Create New</a>
+        </div>
+    </nav>
+    <script>
+        function createNewResume() {
+            localStorage.removeItem('exec_ai_form_v2');
+            localStorage.removeItem('executive_resume_form_data');
+            sessionStorage.removeItem('resumeData');
+            window.location.href = '/create';
+        }
+    </script>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <div style="text-align:center;">
+            <div class="loading-stage" id="loadingStage">Initializing AI Pipeline...</div>
+            <div class="loading-sub">We're organizing your details and building a clean, professional resume.</div>
+            <div class="progress-dots"><span></span><span></span><span></span></div>
+        </div>
+    </div>
+
+    <div class="page">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="step-badge"><span></span> AI-Powered Resume Builder</div>
+            <h1 class="page-title">Build Your Resume</h1>
+            <p class="page-subtitle">Fill in your details below. Our AI will transform them into a compelling, ATS-optimized professional narrative.</p>
+        </div>
+
+        <form id="resumeForm">
+
+            <!-- ───── Section 1: Personal Info ───── -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Personal Information</div>
+                        <div class="section-desc">Your core identity and contact details</div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Full Name</label>
+                    <input type="text" name="fullName" placeholder="e.g. Marcus Chen" required>
+                </div>
+                <div class="field">
+                    <label>Professional Title (Current)</label>
+                    <input type="text" name="title" placeholder="e.g. Senior Technical Program Manager">
+                </div>
+                <div class="field">
+                    <label>The role you are applying for?</label>
+                    <input type="text" name="targetRole" placeholder="e.g. Director of Engineering at Google" required>
+                </div>
+                <div class="grid-2">
+                    <div class="field"><label>Email Address</label><input type="email" name="email" placeholder="marcus@example.com" required></div>
+                    <div class="field"><label>Phone Number</label><input type="tel" name="phone" placeholder="+1 (555) 123-4567" required></div>
+                </div>
+                <div class="field">
+                    <label>Location</label>
+                    <input type="text" name="location" placeholder="e.g. Seattle, WA">
+                </div>
+                <div class="field" style="margin-bottom:0;">
+                    <label>LinkedIn URL</label>
+                    <div style="position:relative;">
+                        <span style="position:absolute; left:0.9rem; top:50%; transform:translateY(-50%); color:var(--text-subtle);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        </span>
+                        <input type="url" name="linkedin" placeholder="https://linkedin.com/in/your-profile" style="padding-left:2.5rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ───── Section 2: Experience ───── -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Work Experience</div>
+                        <div class="section-desc">Add your professional roles (most recent first)</div>
+                    </div>
+                </div>
+
+                <div id="expList"></div>
+                <button type="button" id="addExpBtn" class="add-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Work Experience
+                </button>
+            </div>
+
+            <!-- ───── Section 3: Projects ───── -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 22 22 7 12 2"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Projects & Initiatives</div>
+                        <div class="section-desc">Key projects that demonstrate your impact</div>
+                    </div>
+                </div>
+
+                <div id="projectsList"></div>
+                <button type="button" id="addProjectBtn" class="add-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Project
+                </button>
+            </div>
+
+            <!-- ───── Section 4: Education ───── -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Education</div>
+                        <div class="section-desc">Degrees, certifications, and academic credentials</div>
+                    </div>
+                </div>
+
+                <div id="eduList"></div>
+                <button type="button" id="addEduBtn" class="add-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Education
+                </button>
+            </div>
+
+            <!-- ───── Section 5: Training & Courses ───── -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Training & Courses</div>
+                        <div class="section-desc">Professional development and specialized training</div>
+                    </div>
+                </div>
+                <div id="trainingList"></div>
+                <button type="button" id="addTrainingBtn" class="add-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Training/Course
+                </button>
+            </div>
+
+            <!-- ───── Section 6: Key Achievements ───── -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Key Achievements</div>
+                        <div class="section-desc">Standalone highlights (3 will be shown in a row)</div>
+                    </div>
+                </div>
+                <div id="achievementsList"></div>
+                <button type="button" id="addAchievementBtn" class="add-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Key Achievement
+                </button>
+            </div>
+
+            <!-- ───── Section 7: Languages ───── -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Languages</div>
+                    </div>
+                </div>
+                <div id="languagesList"></div>
+                <button type="button" id="addLanguageBtn" class="add-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    Add Language
+                </button>
+            </div>
+
+            <!-- ───── Section 8: Skills ───── -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div>
+                        <div class="section-title">Skills & Certifications</div>
+                        <div class="section-desc">Technical expertise and professional credentials</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="field">
+                        <label>Technical Skills</label>
+                        <textarea name="skills_raw" placeholder="e.g. Python, AWS, Kubernetes, Agile, Stakeholder Management, SDLC..."></textarea>
+                        <p class="field-hint">Enter skills separated by commas</p>
+                    </div>
+                    <div class="field">
+                        <label>Certifications</label>
+                        <textarea name="certs_raw" placeholder="e.g. PMP, AWS Solutions Architect, CISSP, Google Cloud Professional..."></textarea>
+                        <p class="field-hint">Enter certifications separated by commas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ───── Submit ───── -->
+            <div class="submit-area">
+                <div class="submit-meta">
+                    <h4>Ready to Continue?</h4>
+                    <p>Our 3-agent AI pipeline will structure, optimize, and format your resume in under 30 seconds.</p>
+                </div>
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Generate Resume →
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <footer class="footer">
+        &copy; 2026 RESUMEAI. ALL RIGHTS RESERVED.
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const STORAGE_KEY = 'exec_ai_form_v2';
+        const resumeForm = document.getElementById('resumeForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingStage = document.getElementById('loadingStage');
+
+        // ── Dynamic Entry Templates ──
+        function makeExpEntry(vals = {}) {
+            const d = document.createElement('div');
+            d.className = 'dynamic-entry';
+            d.innerHTML = `
+                <div class="entry-header">
+                    <span class="entry-label">Experience</span>
+                    <button type="button" class="remove-btn">Remove</button>
+                </div>
+                <div class="field"><label>Job Title</label><input type="text" name="exp_title[]" placeholder="e.g. Senior Technical Program Manager" value="${vals.title||''}" required></div>
+                <div class="grid-2">
+                    <div class="field"><label>Company</label><input type="text" name="exp_company[]" placeholder="e.g. Google" value="${vals.company||''}" required></div>
+                    <div class="field"><label>Location</label><input type="text" name="exp_location[]" placeholder="e.g. Seattle, WA" value="${vals.location||''}"></div>
+                </div>
+                <div class="field"><label>Duration</label><input type="text" name="exp_date[]" placeholder="e.g. Jan 2020 – Present" value="${vals.date||''}" required></div>
+                <div class="field" style="margin-bottom:0;"><label>Key Achievements & Responsibilities</label><textarea name="exp_desc[]" placeholder="Describe your role, impact, and measurable results....">${vals.desc||''}</textarea></div>
+            `;
+            d.querySelector('.remove-btn').addEventListener('click', () => { d.remove(); saveFormData(); });
+            return d;
+        }
+
+        function makeProjectEntry(vals = {}) {
+            const d = document.createElement('div');
+            d.className = 'dynamic-entry';
+            d.innerHTML = `
+                <div class="entry-header">
+                    <span class="entry-label">Project</span>
+                    <button type="button" class="remove-btn">Remove</button>
+                </div>
+                <div class="field"><label>Project Name</label><input type="text" name="project_name[]" placeholder="e.g. Cloud Migration Initiative" value="${vals.name||''}" required></div>
+                <div class="field" style="margin-bottom:0;"><label>Description & Impact</label><textarea name="project_desc[]" placeholder="What was the problem? What did you build or lead? What was the measurable outcome?">${vals.desc||''}</textarea></div>
+            `;
+            d.querySelector('.remove-btn').addEventListener('click', () => { d.remove(); saveFormData(); });
+            return d;
+        }
+
+        function makeEduEntry(vals = {}) {
+            const d = document.createElement('div');
+            d.className = 'dynamic-entry';
+            d.innerHTML = `
+                <div class="entry-header">
+                    <span class="entry-label">Education</span>
+                    <button type="button" class="remove-btn">Remove</button>
+                </div>
+                <div class="grid-2">
+                    <div class="field"><label>School Or University</label><input type="text" name="edu_school[]" placeholder="e.g. Stanford University" value="${vals.school||''}" required></div>
+                    <div class="field"><label>Degree / Program</label><input type="text" name="edu_degree[]" placeholder="e.g. M.S. Computer Science" value="${vals.degree||''}" required></div>
+                </div>
+                <div class="grid-2" style="margin-bottom:0;">
+                    <div class="field"><label>Location</label><input type="text" name="edu_location[]" placeholder="e.g. Stanford, CA" value="${vals.location||''}"></div>
+                    <div class="field"><label>Year / Duration</label><input type="text" name="edu_date[]" placeholder="e.g. 2018 – 2020" value="${vals.date||''}"></div>
+                </div>
+            `;
+            d.querySelector('.remove-btn').addEventListener('click', () => { d.remove(); saveFormData(); });
+            return d;
+        }
+
+        function makeTrainingEntry(vals = {}) {
+            const d = document.createElement('div');
+            d.className = 'dynamic-entry';
+            d.innerHTML = `
+                <div class="entry-header">
+                    <span class="entry-label">Training/Course</span>
+                    <button type="button" class="remove-btn">Remove</button>
+                </div>
+                <div class="grid-2">
+                    <div class="field"><label>Course Title</label><input type="text" name="training_title[]" placeholder="e.g. AWS Certified Solutions Architect" value="${vals.title||''}" required></div>
+                    <div class="field"><label>Institution</label><input type="text" name="training_org[]" placeholder="e.g. Amazon Web Services" value="${vals.org||''}" required></div>
+                </div>
+                <div class="field"><label>Date / Year</label><input type="text" name="training_date[]" placeholder="e.g. 2023" value="${vals.date||''}"></div>
+            `;
+            d.querySelector('.remove-btn').addEventListener('click', () => { d.remove(); saveFormData(); });
+            return d;
+        }
+
+        function makeAchievementEntry(vals = {}) {
+            const d = document.createElement('div');
+            d.className = 'dynamic-entry';
+            d.innerHTML = `
+                <div class="entry-header">
+                    <span class="entry-label">Achievement</span>
+                    <button type="button" class="remove-btn">Remove</button>
+                </div>
+                <div class="field"><label>Achievement Title</label><input type="text" name="ach_title[]" placeholder="e.g. Launched Project X" value="${vals.title||''}" required></div>
+                <div class="field" style="margin-bottom:0;"><label>Description/Impact</label><textarea name="ach_desc[]" placeholder="e.g. Scaled system to 1M users with zero downtime">${vals.desc||''}</textarea></div>
+            `;
+            d.querySelector('.remove-btn').addEventListener('click', () => { d.remove(); saveFormData(); });
+            return d;
+        }
+
+        function makeLanguageEntry(vals = {}) {
+            const d = document.createElement('div');
+            d.className = 'dynamic-entry';
+            d.innerHTML = `
+                <div class="entry-header">
+                    <span class="entry-label">Language</span>
+                    <button type="button" class="remove-btn">Remove</button>
+                </div>
+                <div class="grid-2">
+                    <div class="field"><label>Language</label><input type="text" name="lang_name[]" placeholder="e.g. English" value="${vals.name||''}" required></div>
+                    <div class="field"><label>Level (e.g. Native, Fluent, Professional)</label><input type="text" name="lang_level[]" placeholder="e.g. Native" value="${vals.level||''}" required></div>
+                </div>
+            `;
+            d.querySelector('.remove-btn').addEventListener('click', () => { d.remove(); saveFormData(); });
+            return d;
+        }
+
+        // ── Button Listeners ──
+        document.getElementById('addExpBtn').addEventListener('click', () => {
+            document.getElementById('expList').appendChild(makeExpEntry());
+            saveFormData();
+        });
+        document.getElementById('addProjectBtn').addEventListener('click', () => {
+            document.getElementById('projectsList').appendChild(makeProjectEntry());
+            saveFormData();
+        });
+        document.getElementById('addEduBtn').addEventListener('click', () => {
+            document.getElementById('eduList').appendChild(makeEduEntry());
+            saveFormData();
+        });
+        document.getElementById('addTrainingBtn').addEventListener('click', () => {
+            document.getElementById('trainingList').appendChild(makeTrainingEntry());
+            saveFormData();
+        });
+        document.getElementById('addAchievementBtn').addEventListener('click', () => {
+            document.getElementById('achievementsList').appendChild(makeAchievementEntry());
+            saveFormData();
+        });
+        document.getElementById('addLanguageBtn').addEventListener('click', () => {
+            document.getElementById('languagesList').appendChild(makeLanguageEntry());
+            saveFormData();
+        });
+
+        // ── Persistence ──
+        function saveFormData() {
+            const fd = new FormData(resumeForm);
+            const data = {};
+            ['fullName','title','targetRole','email','phone','location','linkedin','skills_raw','certs_raw'].forEach(k => data[k] = fd.get(k));
+
+            const zip = (names) => {
+                const arrays = names.map(n => fd.getAll(n));
+                const len = arrays[0] ? arrays[0].length : 0;
+                const result = [];
+                for (let i = 0; i < len; i++) result.push(arrays.map(a => a[i] || ''));
+                return result;
+            };
+            data.exp = zip(['exp_title[]','exp_company[]','exp_location[]','exp_date[]','exp_desc[]']);
+            data.proj = zip(['project_name[]','project_desc[]']);
+            data.edu = zip(['edu_school[]','edu_degree[]','edu_location[]','edu_date[]']);
+            data.training = zip(['training_title[]','training_org[]','training_date[]']);
+            data.achievements = zip(['ach_title[]','ach_desc[]']);
+            data.languages = zip(['lang_name[]','lang_level[]']);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadFormData() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return false;
+            const data = JSON.parse(raw);
+            ['fullName','title','targetRole','email','phone','location','linkedin','skills_raw','certs_raw'].forEach(k => {
+                const el = resumeForm.querySelector(`[name="${k}"]`);
+                if (el && data[k]) el.value = data[k];
+            });
+            (data.exp || []).forEach(r => document.getElementById('expList').appendChild(makeExpEntry({title:r[0],company:r[1],location:r[2],date:r[3],desc:r[4]})));
+            (data.proj || []).forEach(r => document.getElementById('projectsList').appendChild(makeProjectEntry({name:r[0],desc:r[1]})));
+            (data.edu || []).forEach(r => document.getElementById('eduList').appendChild(makeEduEntry({school:r[0],degree:r[1],location:r[2],date:r[3]})));
+            (data.training || []).forEach(r => document.getElementById('trainingList').appendChild(makeTrainingEntry({title:r[0],org:r[1],date:r[2]})));
+            (data.achievements || []).forEach(r => document.getElementById('achievementsList').appendChild(makeAchievementEntry({title:r[0],desc:r[1]})));
+            (data.languages || []).forEach(r => document.getElementById('languagesList').appendChild(makeLanguageEntry({name:r[0],level:r[1]})));
+            return true;
+        }
+
+        resumeForm.addEventListener('input', saveFormData);
+
+        // Load or give defaults
+        if (!loadFormData()) {
+            document.getElementById('expList').appendChild(makeExpEntry());
+            document.getElementById('eduList').appendChild(makeEduEntry());
+        }
+
+        // ── Form Submit ──
+        resumeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData(resumeForm);
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+
+            loadingOverlay.classList.add('active');
+
+            const stages = [
+                "Analyzing your experience...",
+                "Optimizing for ATS keywords...",
+                "Formatting executive template..."
+            ];
+            let si = 0;
+            loadingStage.textContent = stages[0];
+            const interval = setInterval(() => {
+                si = (si + 1) % stages.length;
+                loadingStage.textContent = stages[si];
+            }, 2800);
+
+            let raw = `# TARGET ROLE\n${fd.get('targetRole')}\n\n# PERSONAL INFO\nName: ${fd.get('fullName')}\nTitle: ${fd.get('title')}\nEmail: ${fd.get('email')}\nPhone: ${fd.get('phone')}\nLocation: ${fd.get('location')}${fd.get('linkedin') ? '\nLinkedIn: '+fd.get('linkedin') : ''}\n\n`;
+
+            const expTitles=fd.getAll('exp_title[]'), expCos=fd.getAll('exp_company[]'), expLocs=fd.getAll('exp_location[]'), expDates=fd.getAll('exp_date[]'), expDescs=fd.getAll('exp_desc[]');
+            raw += `# EXPERIENCE\n`;
+            expTitles.forEach((t,i)=>{ raw+=`${t} at ${expCos[i]} (${expLocs[i]}), ${expDates[i]}\n${expDescs[i]}\n\n`; });
+
+            const pN=fd.getAll('project_name[]'), pD=fd.getAll('project_desc[]');
+            if(pN.length&&pN[0]){ raw+=`# PROJECTS\n`; pN.forEach((n,i)=>{ raw+=`${n}: ${pD[i]}\n\n`; }); }
+
+            const tT=fd.getAll('training_title[]'), tO=fd.getAll('training_org[]'), tD=fd.getAll('training_date[]');
+            if(tT.length&&tT[0]){ raw+=`# TRAINING & COURSES\n`; tT.forEach((t,i)=>{ raw+=`${t} from ${tO[i]} (${tD[i]})\n`; }); raw+='\n'; }
+
+            const eS=fd.getAll('edu_school[]'), eD=fd.getAll('edu_degree[]'), eL=fd.getAll('edu_location[]'), eDt=fd.getAll('edu_date[]');
+            raw += `# EDUCATION\n`;
+            eS.forEach((s,i)=>{ raw+=`${eD[i]} from ${s} (${eL[i]}), ${eDt[i]}\n`; });
+
+            const aT=fd.getAll('ach_title[]'), aD=fd.getAll('ach_desc[]');
+            if(aT.length&&aT[0]){ raw+=`\n# KEY ACHIEVEMENTS\n`; aT.forEach((t,i)=>{ raw+=`- ${t}: ${aD[i]}\n`; }); }
+
+            const lN=fd.getAll('lang_name[]'), lL=fd.getAll('lang_level[]');
+            if(lN.length&&lN[0]){ raw+=`\n# LANGUAGES\n`; lN.forEach((n,i)=>{ raw+=`- ${n} (${lL[i]})\n`; }); }
+
+            raw += `\n# SKILLS\n${fd.get('skills_raw')}\n\n# CERTIFICATIONS\n${fd.get('certs_raw')}`;
+
+            try {
+                const res = await fetch('/api/resume/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rawInput: raw })
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    sessionStorage.setItem('resumeData', JSON.stringify(result.data));
+                    window.location.href = '/preview';
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch(err) {
+                alert('Connection error. Please try again.');
+            } finally {
+                clearInterval(interval);
+                loadingOverlay.classList.remove('active');
+                submitBtn.disabled = false;
+            }
+        });
+
+        window.clearForm = () => {
+            if (confirm('Clear all form data and start fresh?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                window.location.reload();
+            }
+        };
+    });
+    </script>
+    <script>
+        if (sessionStorage.getItem('resumeData')) {
+            const link = document.getElementById('navResumeLink');
+            if (link) link.style.display = 'inline';
+        }
+    </script>
+</body>
+</html>

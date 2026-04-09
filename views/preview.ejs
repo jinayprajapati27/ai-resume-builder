@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Preview | ResumeAI</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/resume-preview.css">
+</head>
+<body class="bg-grid bg-glow" style="padding-top: 5rem;">
+    <!-- ─── Navbar ─── -->
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <div class="nav-logo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            ResumeAI
+        </a>
+
+        <!-- Template Switcher -->
+        <div class="template-tabs" id="templateTabs">
+            <button class="template-tab active" data-template="executive">Executive</button>
+            <button class="template-tab" data-template="modern">Modern</button>
+            <button class="template-tab" data-template="minimal">Minimal</button>
+        </div>
+
+        <div class="nav-actions">
+            <a href="/create" class="nav-link">← Edit</a>
+            <button class="nav-link" style="background:none; border:none; color:var(--foreground); cursor:pointer; font-size:9.5pt; font-weight:500;" onclick="createNewResume()">Create New</button>
+            <button class="btn-export-alt" id="exportDocxBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                DOCX
+            </button>
+            <button class="btn-export" id="exportBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                PDF
+            </button>
+        </div>
+    </nav>
+
+    <div class="preview-wrap">
+        <div id="previewContainer"></div>
+    </div>
+
+    <footer class="footer">
+        &copy; 2026 RESUMEAI. ALL RIGHTS RESERVED.
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const raw = sessionStorage.getItem('resumeData');
+        const container = document.getElementById('previewContainer');
+
+        if (!raw) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    </div>
+                    <h3>No Resume Generated Yet</h3>
+                    <p>Fill in your details and let AI build your executive resume.</p>
+                    <a href="/create">Build My Resume →</a>
+                </div>`;
+            return;
+        }
+
+        const data = JSON.parse(raw);
+        let currentTemplate = 'executive';
+
+        function render(template) {
+            currentTemplate = template;
+            document.querySelectorAll('.template-tab').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.template === template);
+            });
+
+            const p = data.personal || data;
+            const contactParts = [
+                p.email ? `<span>${p.email}</span>` : null,
+                p.phone ? `<span>${p.phone}</span>` : null,
+                p.location ? `<span>${p.location}</span>` : null,
+                p.linkedin ? `<a href="${p.linkedin}" target="_blank">LinkedIn</a>` : null
+            ].filter(Boolean).join(' • ');
+
+            let inner = `
+                <div class="r-header">
+                    <div class="r-name">${p.fullName || p.name || ''}</div>
+                    <div class="r-target-role">${data.targetRole || p.title || ''}</div>
+                    <div class="r-contact">${contactParts}</div>
+                </div>
+            `;
+
+            if (data.summary) {
+                inner += `<div class="r-section">
+                    <div class="r-section-title">Summary</div>
+                    <div class="r-summary" style="text-align: left; max-width: 100%; margin-bottom: 0;">${data.summary}</div>
+                </div>`;
+            }
+
+            if (data.experience && data.experience.length) {
+                inner += `<div class="r-section">
+                    <div class="r-section-title">Experience</div>
+                    ${data.experience.map(exp => `
+                        <div class="r-entry">
+                            <div class="r-entry-header">
+                                <span class="r-org">${exp.company || exp.organization || ''}</span>
+                                <span class="r-loc">${exp.location || ''}</span>
+                            </div>
+                            <div class="r-entry-header">
+                                <span class="r-role">${exp.title || exp.role || ''}</span>
+                                <span class="r-date">${exp.date || exp.duration || ''}</span>
+                            </div>
+                            <ul class="r-bullets">
+                                ${(Array.isArray(exp.description) ? exp.description : [exp.description]).filter(Boolean).map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>`;
+            }
+
+            if (data.achievements && data.achievements.length) {
+                inner += `<div class="r-section">
+                    <div class="r-section-title">Key Achievements</div>
+                    <div class="r-achievements-grid">
+                        ${data.achievements.map(ach => `
+                            <div class="r-ach-item">
+                                <div class="r-ach-title">${ach.title || ''}</div>
+                                <div class="r-ach-desc">${ach.description || ach.desc || ''}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            }
+
+            if (data.projects && data.projects.length) {
+                inner += `<div class="r-section">
+                    <div class="r-section-title">Projects</div>
+                    ${data.projects.map(proj => `
+                        <div class="r-entry">
+                            <div class="r-entry-header">
+                                <span class="r-project-name">${proj.name || proj.title || ''}</span>
+                            </div>
+                            <ul class="r-project-bullets">
+                                ${(Array.isArray(proj.description) ? proj.description : [proj.description]).filter(Boolean).map(b => `<li>${b}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>`;
+            }
+
+            if (data.training && data.training.length) {
+                inner += `<div class="r-section">
+                    <div class="r-section-title">Training / Courses</div>
+                    ${data.training.map(t => `
+                        <div class="r-entry">
+                            <div class="r-entry-header">
+                                <span class="r-org">${t.title || ''}</span>
+                                <span class="r-loc">${t.institution || t.org || ''}</span>
+                            </div>
+                            <div class="r-entry-header" style="margin-top:-2px;">
+                                <span class="r-role" style="font-weight:400; font-size:9pt; opacity:0.8;">Completion Certificate</span>
+                                <span class="r-date">${t.date || ''}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+            }
+
+            if (data.education && data.education.length) {
+                inner += `<div class="r-section">
+                    <div class="r-section-title">Education</div>
+                    ${data.education.map(edu => `
+                        <div class="r-entry">
+                            <div class="r-entry-header">
+                                <span class="r-org">${edu.school || edu.university || edu.institution || ''}</span>
+                                <span class="r-loc">${edu.location || ''}</span>
+                            </div>
+                            <div class="r-entry-header">
+                                <span class="r-role">${edu.degree || ''}</span>
+                                <span class="r-date">${edu.date || edu.year || ''}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+            }
+
+            // Robustly parse skills and certs (handle arrays of strings or objects)
+            const mapToString = (arr) => {
+                if (!Array.isArray(arr)) return arr || '';
+                return arr.map(item => typeof item === 'object' ? (item.name || item.title || JSON.stringify(item)) : item).join(', ');
+            };
+
+            const skills = mapToString(data.skills);
+            const certs = mapToString(data.certifications);
+
+            if (skills || certs || (data.languages && data.languages.length)) {
+                inner += `<div class="r-section">
+                    <div class="r-section-title">Skills & Languages</div>
+                    <ul class="r-addl">
+                        ${skills ? `<li><strong>Technical Skills:</strong> ${skills}</li>` : ''}
+                        ${certs ? `<li><strong>Certifications:</strong> ${certs}</li>` : ''}
+                        ${data.languages && data.languages.length ? `
+                            <li>
+                                <strong>Languages:</strong>
+                                <div class="r-lang-list" style="display:inline-flex; vertical-align:top; margin-left:10px;">
+                                    ${data.languages.map(l => {
+                                        const name = typeof l === 'object' ? (l.name || l.language || '') : l;
+                                        const level = typeof l === 'object' ? (l.level || l.proficiency || '') : '';
+                                        return `<span class="r-lang-item">${name}${level ? `<span class="r-lang-level">${level}</span>` : ''}</span>`;
+                                    }).join('')}
+                                </div>
+                            </li>
+                        ` : ''}
+                    </ul>
+                </div>`;
+            }
+
+            const tClass = template === 'modern' ? 't-modern' : template === 'minimal' ? 't-minimal' : 't-executive';
+            container.innerHTML = `<div class="resume-paper ${tClass}" id="resumePaper">${inner}</div>`;
+        }
+
+        render('executive');
+
+        document.getElementById('templateTabs').addEventListener('click', e => {
+            const btn = e.target.closest('.template-tab');
+            if (btn) render(btn.dataset.template);
+        });
+
+        // PDF Export with onclone Isolation
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('exportBtn');
+            const name = (data.personal?.fullName || data.personal?.name || 'Resume').replace(/\s+/g, '_');
+            btn.disabled = true;
+            btn.innerHTML = 'Generating PDF...';
+
+            try {
+                const el = document.getElementById('resumePaper');
+                const opt = {
+                    margin: 0.15,
+                    filename: `${name}_Resume.pdf`,
+                    image: { type: 'jpeg', quality: 1.0 },
+                    html2canvas: { 
+                        scale: 2.5, 
+                        useCORS: true, 
+                        letterRendering: true,
+                        backgroundColor: '#ffffff',
+                        onclone: (clonedDoc) => {
+                            // Apply PDF-specific styles to the internal clone
+                            const pdfEl = clonedDoc.getElementById('resumePaper');
+                            if (pdfEl) {
+                                pdfEl.style.width = '8.5in';
+                                pdfEl.style.background = 'white';
+                                pdfEl.style.color = 'black';
+                                pdfEl.style.margin = '0';
+                                pdfEl.style.setProperty('--foreground', '#000000');
+                                pdfEl.style.setProperty('--muted-foreground', '#424242');
+                                pdfEl.style.setProperty('--border', '#dddddd');
+                                pdfEl.style.setProperty('--primary', '#000000'); // Optional: black primary in PDF
+                            }
+                        }
+                    },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'] }
+                };
+
+                await html2pdf().set(opt).from(el).save();
+
+            } catch (err) {
+                console.error('PDF Generation Error:', err);
+                alert('Export failed. Please try again or use DOCX.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> PDF`;
+            }
+        });
+
+        // DOCX Export (Native Backend)
+        document.getElementById('exportDocxBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('exportDocxBtn');
+            btn.disabled = true;
+            btn.innerHTML = 'Generating...';
+
+            try {
+                const response = await fetch('/api/resume/export-docx', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resumeData: data })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const name = (data.personal?.fullName || 'Resume').replace(/\s+/g, '_');
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${name}_Resume.docx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } else {
+                    const error = await response.json();
+                    alert('Export failed: ' + error.error);
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Connection error while exporting DOCX.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> DOCX`;
+            }
+        });
+    });
+
+    function createNewResume() {
+        localStorage.removeItem('exec_ai_form_v2');
+        localStorage.removeItem('executive_resume_form_data');
+        sessionStorage.removeItem('resumeData');
+        window.location.href = '/create';
+    }
+    </script>
+</body>
+</html>
