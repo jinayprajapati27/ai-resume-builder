@@ -82,7 +82,7 @@
                 p.email ? `<span>${p.email}</span>` : null,
                 p.phone ? `<span>${p.phone}</span>` : null,
                 p.location ? `<span>${p.location}</span>` : null,
-                p.linkedin ? `<a href="${p.linkedin}" target="_blank">LinkedIn</a>` : null
+                p.linkedin ? `<a href="${/^https?:\/\//i.test(p.linkedin) ? p.linkedin : 'https://' + p.linkedin}" target="_blank">LinkedIn</a>` : null
             ].filter(Boolean).join(' • ');
 
             let inner = `
@@ -248,25 +248,98 @@
                         letterRendering: true,
                         backgroundColor: '#ffffff',
                         onclone: (clonedDoc) => {
-                            // Apply PDF-specific styles to the internal clone
-                            const pdfEl = clonedDoc.getElementById('resumePaper');
-                            if (pdfEl) {
-                                pdfEl.style.width = '8.5in';
-                                pdfEl.style.background = 'white';
-                                pdfEl.style.color = 'black';
-                                pdfEl.style.margin = '0';
-                                pdfEl.style.setProperty('--foreground', '#000000');
-                                pdfEl.style.setProperty('--muted-foreground', '#424242');
-                                pdfEl.style.setProperty('--border', '#dddddd');
-                                pdfEl.style.setProperty('--primary', '#000000'); // Optional: black primary in PDF
-                            }
+                            // Inject a resolved stylesheet so canvas renderer sees no var() references
+                            const style = clonedDoc.createElement('style');
+                            style.textContent = `
+                                @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;700&family=Open+Sans:wght@400;500;600;700;800;900&display=swap');
+
+                                /* ─── PDF Reset ─── */
+                                * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
+                                body { background: white !important; margin: 0; padding: 0; }
+
+                                /* ─── PDF Paper ─── */
+                                #resumePaper {
+                                    width: 7.8in;
+                                    margin: 0 auto;
+                                    background: white;
+                                    padding: 0.65in;
+                                    box-shadow: none;
+                                    color: #121212;
+                                    font-family: 'Source Serif 4', serif;
+                                }
+
+                                /* ─── Header ─── */
+                                .r-header { text-align: center; margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #cccccc; }
+                                .r-name { font-family: 'Source Serif 4', serif; font-size: 26pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 7px; color: #121212; }
+                                .r-target-role { font-size: 12pt; font-weight: 700; color: #555555; margin-bottom: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+                                .r-contact { font-size: 9pt; color: #555555; line-height: 1.5; font-weight: 500; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+                                .r-contact a { color: #1a0dab; text-decoration: underline; font-weight: 600; cursor: pointer; }
+                                a { color: #1a0dab; text-decoration: underline; }
+
+                                /* ─── Summary ─── */
+                                .r-summary { font-size: 10pt; line-height: 1.6; color: #121212; text-align: left; margin: 0 auto 22px; max-width: 100%; font-style: italic; }
+
+                                /* ─── Sections ─── */
+                                .r-section { margin-bottom: 22px; }
+                                .r-section-title { font-size: 10.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; border-bottom: 2px solid #121212; padding-bottom: 4px; margin-bottom: 13px; color: #121212; }
+
+                                /* ─── Entries ─── */
+                                .r-entry { margin-bottom: 15px; page-break-inside: avoid; break-inside: avoid; }
+                                .r-entry-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+                                .r-org { font-weight: 800; font-size: 11pt; color: #121212; }
+                                .r-loc { font-size: 9.5pt; color: #555555; font-weight: 600; }
+                                .r-role { font-weight: 700; font-size: 10pt; color: #121212; }
+                                .r-date { font-size: 9.5pt; color: #121212; font-weight: 700; }
+                                .r-bullets { margin: 7px 0 0 20px; padding: 0; }
+                                .r-bullets li { font-size: 9.5pt; line-height: 1.6; color: #1a1a1a; margin-bottom: 4px; }
+
+                                /* ─── Achievements (block layout for canvas stability) ─── */
+                                .r-achievements-grid { display: block; margin-bottom: 15px; }
+                                .r-ach-item { display: block; width: 100%; border-left: 2px solid #a78bfa; padding: 4px 0 4px 12px; margin-bottom: 10px; break-inside: avoid; page-break-inside: avoid; }
+                                .r-ach-title { font-weight: 800; font-size: 10pt; color: #121212; margin-bottom: 2px; }
+                                .r-ach-desc { font-size: 9.5pt; color: #333333; line-height: 1.5; }
+
+                                /* ─── Languages ─── */
+                                .r-lang-list { display: flex; flex-wrap: wrap; gap: 16px; }
+                                .r-lang-item { font-size: 9.5pt; font-weight: 700; color: #121212; }
+                                .r-lang-level { color: #7c3aed; font-weight: 800; margin-left: 4px; }
+
+                                /* ─── Projects ─── */
+                                .r-project-name { font-weight: 800; font-size: 10.5pt; color: #121212; }
+                                .r-project-bullets { margin: 5px 0 0 20px; list-style-type: disc; padding: 0; }
+                                .r-project-bullets li { font-size: 9.5pt; line-height: 1.5; color: #1a1a1a; padding-left: 3px; margin-bottom: 3px; }
+
+                                /* ─── Additional / Skills ─── */
+                                .r-addl { list-style: none; margin: 0; padding: 0; }
+                                .r-addl li { font-size: 9.5pt; line-height: 1.7; color: #1a1a1a; margin-bottom: 5px; }
+                                .r-addl li strong { color: #121212; font-weight: 800; text-transform: uppercase; font-size: 8.5pt; letter-spacing: 0.05em; }
+
+                                /* ─── Template Variants ─── */
+                                .t-modern .r-header { border-bottom: 4px solid #a78bfa; padding-bottom: 16px; text-align: left; }
+                                .t-modern .r-name { font-family: 'Open Sans', sans-serif; letter-spacing: -0.01em; font-size: 20pt; color: #121212; font-weight: 900; }
+                                .t-modern .r-section-title { color: #7c3aed; border-bottom-color: #7c3aed; }
+                                .t-modern .r-org { color: #7c3aed; font-family: 'Open Sans', sans-serif; }
+                                .t-modern .r-contact { text-align: left; }
+
+                                .t-minimal .r-header { text-align: left; border-bottom: 1px solid #cccccc; }
+                                .t-minimal .r-name { font-family: 'Open Sans', sans-serif; font-size: 19pt; letter-spacing: -0.02em; text-transform: none; font-weight: 800; }
+                                .t-minimal .r-contact { text-align: left; }
+                                .t-minimal .r-section-title { font-family: 'Open Sans', sans-serif; font-size: 8.5pt; color: #666666; border-bottom: 1px solid #cccccc; letter-spacing: 0.15em; }
+                                .t-minimal .r-org { font-size: 10pt; font-weight: 700; }
+                                .t-minimal .r-role { font-weight: 500; }
+                            `;
+                            clonedDoc.head.appendChild(style);
                         }
                     },
                     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-                    pagebreak: { mode: ['css', 'legacy'] }
+                    pagebreak: { mode: ['css', 'legacy'] },
+                    enableLinks: true
                 };
 
-                await html2pdf().set(opt).from(el).save();
+                await html2pdf().set(opt).from(el).toPdf().get('pdf').then((pdf) => {
+                    // Ensure all link annotations are retained
+                    return pdf;
+                }).save();
 
             } catch (err) {
                 console.error('PDF Generation Error:', err);

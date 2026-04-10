@@ -1,5 +1,4 @@
 const fs = require('fs');
-
 const inlineStyle = `<style>
 :root {
   --card: #ffffff;

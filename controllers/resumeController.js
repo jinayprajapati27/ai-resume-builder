@@ -1,4 +1,4 @@
-import { generateResumePipeline } from '../services/aiOrchestrator.js';
+import { generateResumePipeline } from '../services/aiModel.js';
 import { generateDocx } from '../services/docxService.js';
 
 export const generateResume = async (req, res) => {
