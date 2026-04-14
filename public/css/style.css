@@ -278,8 +278,26 @@ a:hover { color: var(--primary-hover); }
     font-size: 0.85rem;
     font-weight: 500;
     transition: color 0.2s;
+    position: relative; /* Anchor for the hover line !*/
 }
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: -4px;
+    left: 0;
+    background-color: var(--primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .nav-links a:hover { color: var(--text); }
+.nav-links a:hover::after {
+    transform: scaleX(1);
+}
 
 .nav-cta {
     background: var(--primary) !important;
@@ -911,26 +929,40 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
 }
 
 @media (max-width: 768px) {
-    /* Keep navbar fixed but force vertical stack on mobile to prevent overflow */
+    /* Dock navbar to the absolute top of the screen on mobile, taking full width */
     .navbar {
-        width: calc(100% - 1.5rem);
-        padding: 0.8rem;
-        gap: 0.8rem;
-        flex-direction: column;
-        align-items: center;
-        border-radius: 1rem;
+        width: 100%;
+        max-width: none;
+        top: 0;
+        left: 0;
+        transform: none;
+        padding: 0.6rem 1rem;
+        gap: 0.5rem;
+        border-radius: 0;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        flex-direction: row; /* Keep it horizontal */
+        flex-wrap: wrap;     /* Allow the inner elements to fold naturally */
+        justify-content: space-between;
     }
     
-    /* Ensure content avoids the much taller fixed navbar */
-    body, main.container {
-        padding-top: 10.5rem !important; 
+    /* Only pad the body, not both body and container */
+    body {
+        padding-top: 6rem !important; 
     }
     
-    .nav-links, .nav-actions, .template-tabs {
+    .nav-links, .nav-actions {
+        width: auto;
+        gap: 0.6rem;
+    }
+    
+    /* Force template-tabs to their own row if they don't fit smoothly */
+    .template-tabs {
         width: 100%;
         justify-content: center;
-        flex-wrap: wrap;
-        gap: 0.8rem;
+        order: 3; /* Push down to next flex-wrap chunk if needed */
+        margin-top: 4px;
     }
     
     .preview-wrap { padding: 0 0.5rem 4rem; }
