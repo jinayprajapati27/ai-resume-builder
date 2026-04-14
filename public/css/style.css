@@ -965,7 +965,7 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
     
     .hero {
         min-height: auto;
-        padding-top: 6rem;
+        padding-top: 4.5rem;
         padding-bottom: 2rem;
         justify-content: flex-start;
     }
