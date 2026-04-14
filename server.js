@@ -1,8 +1,13 @@
 import express from "express";
 import dotenv from 'dotenv';
+import connectDB from './config/db.js';
 import resumeRoutes from './routes/resumeRoutes.js';
+import Resume from './models/Resume.js';
 
 dotenv.config();
+
+// Connect to Database
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +32,16 @@ app.get('/preview', (req, res) => {
 
 app.get('/create', (req, res) => {
     res.render('form');
+});
+
+app.get('/resumes', async (req, res) => {
+    try {
+        const resumes = await Resume.find().sort({ createdAt: -1 });
+        res.render('dashboard', { resumes, title: "My Resumes | ResumeAI" });
+    } catch (error) {
+        console.error("Dashboard Error:", error);
+        res.status(500).send("Error loading dashboard");
+    }
 });
 
 

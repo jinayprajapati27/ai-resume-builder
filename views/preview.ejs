@@ -55,11 +55,32 @@
     </a>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const raw = sessionStorage.getItem('resumeData');
+    document.addEventListener('DOMContentLoaded', async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const resumeId = urlParams.get('id');
+        let data = null;
+
+        if (resumeId) {
+            try {
+                const response = await fetch(`/api/resume/${resumeId}`);
+                if (response.ok) {
+                    data = await response.json();
+                } else {
+                    console.error("Failed to fetch resume");
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
+        }
+
+        if (!data) {
+            const raw = sessionStorage.getItem('resumeData');
+            if (raw) data = JSON.parse(raw);
+        }
+
         const container = document.getElementById('previewContainer');
 
-        if (!raw) {
+        if (!data) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -72,7 +93,6 @@
             return;
         }
 
-        const data = JSON.parse(raw);
         let currentTemplate = 'executive';
 
         function render(template) {
