@@ -21,6 +21,7 @@ const resumeSchema = new mongoose.Schema({
     // The ATS optimized/formatted version
     formattedResume: mongoose.Schema.Types.Mixed,
     rawInput: { type: String },
+    userId: { type: String, required: true },
     createdAt: { type: Date, default: Date.now }
 });
 

@@ -13,9 +13,11 @@ export const generateResume = async (req, res) => {
         const resumeData = await generateResumePipeline(rawInput);
 
         // Save to MongoDB
+        const userId = req.cookies.resume_user_id || req.body.userId;
         const newResume = new Resume({
             ...resumeData,
-            rawInput
+            rawInput,
+            userId: userId || 'anonymous'
         });
         await newResume.save();
 
@@ -32,7 +34,9 @@ export const generateResume = async (req, res) => {
 
 export const getAllResumes = async (req, res) => {
     try {
-        const resumes = await Resume.find().sort({ createdAt: -1 });
+        const userId = req.cookies.resume_user_id;
+        const query = userId ? { userId } : {}; // Fallback to all if no user ID (for backward compatibility or admin)
+        const resumes = await Resume.find(query).sort({ createdAt: -1 });
         res.status(200).json(resumes);
     } catch (error) {
         res.status(500).json({ error: error.message });

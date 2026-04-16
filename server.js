@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import resumeRoutes from './routes/resumeRoutes.js';
 import Resume from './models/Resume.js';
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.set('view engine', 'ejs');
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
@@ -36,7 +38,9 @@ app.get('/create', (req, res) => {
 
 app.get('/resumes', async (req, res) => {
     try {
-        const resumes = await Resume.find().sort({ createdAt: -1 });
+        const userId = req.cookies.resume_user_id;
+        const query = userId ? { userId } : {}; 
+        const resumes = await Resume.find(query).sort({ createdAt: -1 });
         res.render('dashboard', { resumes, title: "My Resumes | ResumeAI" });
     } catch (error) {
         console.error("Dashboard Error:", error);

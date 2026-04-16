@@ -50,6 +50,24 @@
     <script src="/js/main.js"></script>
     <%- typeof scripts !== 'undefined' ? scripts : '' %>
     <script>
+        // Ensure User ID cookie exists
+        (function() {
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+            }
+            if (!getCookie('resume_user_id')) {
+                const newId = 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+                setCookie('resume_user_id', newId, 365);
+            }
+        })();
+
         if (sessionStorage.getItem('resumeData')) {
             const link = document.getElementById('navResumeLink');
             if (link) link.style.display = 'inline';
