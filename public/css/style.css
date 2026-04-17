@@ -1016,9 +1016,10 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
     border: none;
     outline: none;
     
-    /* Grid is more robust for centering a single icon */
-    display: grid !important; 
-    place-items: center;
+    /* Flexbox is more robust for centering a single icon and ignoring whitespace text nodes */
+    display: flex !important; 
+    align-items: center;
+    justify-content: center;
     visibility: hidden; /* Hidden by default */
     opacity: 0;
     transform: translateY(20px);
@@ -1029,7 +1030,7 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
     width: 24px;
     height: 24px;
     margin: 0;
-    stroke-width: 3px; /* Slightly thicker for better visibility */
+    stroke-width: 2.5px; /* Matches the SVG attribute for consistency */
 }
 
 .fab:hover {
