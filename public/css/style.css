@@ -996,27 +996,58 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
 .fab {
     display: none;
     position: fixed;
-    bottom: 2rem;
-    right: 1.5rem;
+    /* Use safe-area-inset to ensure button isn't cut off by mobile UI */
+    bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+    right: calc(1.5rem + env(safe-area-inset-right, 0px));
     z-index: 9999;
-    width: 60px;
-    height: 60px;
+    width: 56px; /* Slightly smaller for better proportions */
+    height: 56px;
     border-radius: 50%;
     background: var(--primary);
     color: var(--primary-fg);
-    box-shadow: 0 10px 25px rgba(167,139,250,0.4);
-    align-items: center;
-    justify-content: center;
+    box-shadow: 
+        0 8px 16px rgba(167, 139, 250, 0.3),
+        0 0 0 1px rgba(167, 139, 250, 0.1);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+    padding: 0;
+    margin: 0;
+    border: none;
+    outline: none;
+    
+    /* Grid is more robust for centering a single icon */
+    display: grid !important; 
+    place-items: center;
+    visibility: hidden; /* Hidden by default */
+    opacity: 0;
+    transform: translateY(20px);
 }
+
+.fab svg {
+    display: block;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    stroke-width: 3px; /* Slightly thicker for better visibility */
+}
+
 .fab:hover {
     background: var(--primary-hover);
-    transform: translateY(-3px);
-    box-shadow: 0 14px 30px rgba(167,139,250,0.5);
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 12px 24px rgba(167, 139, 250, 0.4);
 }
+
+.fab:active {
+    transform: scale(0.95);
+}
+
 @media (max-width: 768px) {
-    .fab { display: flex; }
+    .fab { 
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+    }
     /* Hide the navbar cta on mobile if we have the FAB */
     .navbar .nav-cta { display: none !important; }
 }
