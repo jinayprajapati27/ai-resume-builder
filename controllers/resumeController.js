@@ -35,8 +35,8 @@ export const generateResume = async (req, res) => {
 export const getAllResumes = async (req, res) => {
     try {
         const userId = req.cookies.resume_user_id;
-        const query = userId ? { userId } : {}; // Fallback to all if no user ID (for backward compatibility or admin)
-        const resumes = await Resume.find(query).sort({ createdAt: -1 });
+        if (!userId) return res.status(200).json([]);
+        const resumes = await Resume.find({ userId }).sort({ createdAt: -1 });
         res.status(200).json(resumes);
     } catch (error) {
         res.status(500).json({ error: error.message });

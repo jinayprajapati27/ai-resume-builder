@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
 import connectDB from './config/db.js';
 import resumeRoutes from './routes/resumeRoutes.js';
 import Resume from './models/Resume.js';
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 
 // Routes
 app.use('/api/resume', resumeRoutes);
@@ -39,8 +41,10 @@ app.get('/create', (req, res) => {
 app.get('/resumes', async (req, res) => {
     try {
         const userId = req.cookies.resume_user_id;
-        const query = userId ? { userId } : {}; 
-        const resumes = await Resume.find(query).sort({ createdAt: -1 });
+        if (!userId) {
+            return res.render('dashboard', { resumes: [], title: "My Resumes | ResumeAI" });
+        }
+        const resumes = await Resume.find({ userId }).sort({ createdAt: -1 });
         res.render('dashboard', { resumes, title: "My Resumes | ResumeAI" });
     } catch (error) {
         console.error("Dashboard Error:", error);

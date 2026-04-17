@@ -942,20 +942,30 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
         border-top: none;
         border-left: none;
         border-right: none;
-        flex-direction: row; /* Keep it horizontal */
-        flex-wrap: wrap;     /* Allow the inner elements to fold naturally */
+        flex-direction: row; 
+        flex-wrap: wrap;     
         justify-content: space-between;
+    }
+    
+    .nav-links {
+        gap: 0.8rem; /* Reduced gap for mobile */
+        width: auto;
+    }
+
+    .nav-links a {
+        font-size: 0.75rem; /* Smaller font for mobile */
     }
     
     /* Force template-tabs to their own row if they don't fit smoothly */
     .template-tabs {
         width: 100%;
         justify-content: center;
-        order: 3; /* Push down to next flex-wrap chunk if needed */
+        order: 3; 
         margin-top: 4px;
     }
     
     .preview-wrap { padding: 0 0.5rem 4rem; }
+    .container { padding: 0 1rem; }
 }
 
 @media (max-width: 640px) {

@@ -1,0 +1,138 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Resumes | ResumeAI</title>
+    <link rel="stylesheet" href="/css/style.css?v=2">
+    <link rel="stylesheet" href="/css/theme.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <nav class="navbar no-print">
+        <a href="/" class="nav-brand">
+            <div class="nav-logo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            ResumeAI
+        </a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/resumes">History</a>
+            <a href="/create">Build Resume</a>
+            <span id="navResumeLink" style="display:none;">
+                <a href="/preview" style="color: var(--primary); font-weight: 600;">My Resume ↗</a>
+            </span>
+            <a href="/create" class="nav-cta" onclick="createNewResume()">Create New</a>
+        </div>
+    </nav>
+    <script>
+        function createNewResume() {
+            localStorage.removeItem('exec_ai_form_v2');
+            localStorage.removeItem('executive_resume_form_data');
+            sessionStorage.removeItem('resumeData');
+            window.location.href = '/create';
+        }
+    </script>
+
+    <main class="container" style="padding-top: 5rem;">
+        
+    <div class="god-rays"></div>
+    <div class="container" style="padding-top: 2rem;">
+        <header style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Your <span>Resumes</span></h1>
+                <p style="color: var(--text-muted)">Manage and access all your AI-generated resumes</p>
+            </div>
+        </header>
+
+        <div class="grid-3" id="resumeGrid">
+        <div style="grid-column: 1/-1; text-align: center; padding: 5rem; background: rgba(255,255,255,0.03); border-radius: 1.5rem; border: 1px dashed var(--border);">
+            <p style="color: var(--text-muted); font-size: 1.2rem;">No resumes found yet.</p>
+            <a href="/create" style="color: var(--primary); text-decoration: none; margin-top: 1rem; display: inline-block;">Start building now →</a>
+        </div></div></div>
+    </main>
+
+    <footer class="footer no-print">
+        &copy; 2026 RESUMEAI. ALL RIGHTS RESERVED.
+    </footer>
+    
+    <a href="/create" class="fab no-print" onclick="createNewResume()" aria-label="Create New Resume">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </a>
+
+    <script src="/js/main.js"></script>
+    
+    <script>
+    async function confirmDelete(id) {
+        if (confirm('Are you sure you want to delete this resume?')) {
+            try {
+                const response = await fetch(`/api/resume/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    const card = document.querySelector(`[data-id="${id}"]`);
+                    card.style.transform = 'scale(0.8)';
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 300);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to delete resume');
+            }
+        }
+    }
+
+    async function downloadDocx(id) {
+        try {
+            const res = await fetch(`/api/resume/${id}`);
+            const resume = await res.json();
+            
+            const exportRes = await fetch('/api/resume/export-docx', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resumeData: resume })
+            });
+
+            const blob = await exportRes.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Resume_${resume.personal.fullName.replace(/\s+/g, '_')}.docx`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (err) {
+            console.error(err);
+            alert('Export failed');
+        }
+    }
+    </script>
+    
+    <script>
+        // Ensure User ID cookie exists
+        (function() {
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+            }
+            if (!getCookie('resume_user_id')) {
+                const newId = 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+                setCookie('resume_user_id', newId, 365);
+            }
+        })();
+
+        if (sessionStorage.getItem('resumeData')) {
+            const link = document.getElementById('navResumeLink');
+            if (link) link.style.display = 'inline';
+        }
+    </script>
+</body>
+</html>
+
